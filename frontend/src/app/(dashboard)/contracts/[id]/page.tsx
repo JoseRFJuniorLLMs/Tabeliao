@@ -309,6 +309,10 @@ const timelineColorMap: Record<string, string> = {
   review: 'bg-cyan-100 text-cyan-600',
 };
 
+export function generateStaticParams() {
+  return [];
+}
+
 export default function ContractDetailPage() {
   const [activeTab, setActiveTab] = useState('details');
   const [expandedClauses, setExpandedClauses] = useState<Set<string>>(

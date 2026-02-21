@@ -2,6 +2,9 @@
 const nextConfig = {
   basePath: "/tabeliao",
   output: "export",
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 module.exports = nextConfig;

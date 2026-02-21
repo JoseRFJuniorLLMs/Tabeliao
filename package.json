@@ -1,0 +1,70 @@
+{
+  "name": "tabeliao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Tabeliao - Smart Legal Tech Platform: Digital Notary with Blockchain + AI + Open Finance",
+  "license": "UNLICENSED",
+  "author": "Tabeliao Team",
+  "workspaces": [
+    "services/*",
+    "frontend",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:gateway": "npm run start:dev -w services/api-gateway",
+    "dev:auth": "npm run start:dev -w services/auth-service",
+    "dev:contract": "npm run start:dev -w services/contract-service",
+    "dev:ai": "npm run start:dev -w services/ai-service",
+    "dev:blockchain": "npm run start:dev -w services/blockchain-service",
+    "dev:payment": "npm run start:dev -w services/payment-service",
+    "dev:notification": "npm run start:dev -w services/notification-service",
+    "dev:dispute": "npm run start:dev -w services/dispute-service",
+    "build": "npm run build --workspaces --if-present",
+    "build:frontend": "npm run build -w frontend",
+    "build:services": "npm run build --workspaces --if-present --ignore frontend",
+    "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspaces --if-present",
+    "test:cov": "npm run test:cov --workspaces --if-present",
+    "lint": "eslint \"{services,frontend,packages}/**/*.{ts,tsx}\" --max-warnings 0",
+    "lint:fix": "eslint \"{services,frontend,packages}/**/*.{ts,tsx}\" --fix",
+    "format": "prettier --write \"{services,frontend,packages}/**/*.{ts,tsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"{services,frontend,packages}/**/*.{ts,tsx,json,css,scss,md}\"",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "docker:logs": "docker compose logs -f",
+    "docker:infra": "docker compose up -d postgres redis rabbitmq",
+    "db:migrate": "npm run migration:run -w services/auth-service",
+    "db:seed": "npm run seed -w services/auth-service",
+    "clean": "npm run clean --workspaces --if-present && rimraf node_modules",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-prettier": "^5.1.0",
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.2.0",
+    "rimraf": "^5.0.0",
+    "typescript": "^5.4.0"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

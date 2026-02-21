@@ -1,0 +1,210 @@
+# =============================================================================
+# Tabeliao - Development Infrastructure
+# Usage: docker compose -f docker-compose.dev.yml up -d
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16
+  # Connection: postgresql://tabeliao:tabeliao_dev_2026@localhost:5432/tabeliao_db
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: tabeliao-dev-postgres
+    restart: unless-stopped
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: tabeliao
+      POSTGRES_PASSWORD: tabeliao_dev_2026
+      POSTGRES_DB: tabeliao_db
+      POSTGRES_MULTIPLE_DATABASES: tabeliao_db_test
+    volumes:
+      - tabeliao-pg-data:/var/lib/postgresql/data
+      - ./infra/docker/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tabeliao -d tabeliao_db']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - tabeliao-dev
+
+  # ---------------------------------------------------------------------------
+  # Redis 7
+  # Connection: redis://localhost:6379
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: tabeliao-dev-redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    command: >
+      redis-server
+        --appendonly yes
+        --maxmemory 256mb
+        --maxmemory-policy allkeys-lru
+        --save 60 1000
+    volumes:
+      - tabeliao-redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - tabeliao-dev
+
+  # ---------------------------------------------------------------------------
+  # RabbitMQ 3.13 (with Management UI)
+  # AMQP: amqp://tabeliao:tabeliao_dev_2026@localhost:5672
+  # Management UI: http://localhost:15672 (tabeliao / tabeliao_dev_2026)
+  # ---------------------------------------------------------------------------
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: tabeliao-dev-rabbitmq
+    restart: unless-stopped
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: tabeliao
+      RABBITMQ_DEFAULT_PASS: tabeliao_dev_2026
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: '-rabbit log [{console,[{level,warning}]}]'
+    volumes:
+      - tabeliao-rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - tabeliao-dev
+
+  # ---------------------------------------------------------------------------
+  # MinIO (S3-compatible Object Storage)
+  # API: http://localhost:9000
+  # Console: http://localhost:9001 (minioadmin / minioadmin)
+  # ---------------------------------------------------------------------------
+  minio:
+    image: minio/minio:latest
+    container_name: tabeliao-dev-minio
+    restart: unless-stopped
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - tabeliao-minio-data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - tabeliao-dev
+
+  # MinIO bucket initialization
+  minio-init:
+    image: minio/mc:latest
+    container_name: tabeliao-dev-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set tabeliao http://minio:9000 minioadmin minioadmin;
+        mc mb --ignore-existing tabeliao/tabeliao-documents;
+        mc mb --ignore-existing tabeliao/tabeliao-evidence;
+        mc mb --ignore-existing tabeliao/tabeliao-templates;
+        mc anonymous set download tabeliao/tabeliao-documents;
+        echo 'MinIO buckets created successfully';
+      "
+    networks:
+      - tabeliao-dev
+
+  # ---------------------------------------------------------------------------
+  # Mailhog (Email Testing)
+  # SMTP: localhost:1025
+  # Web UI: http://localhost:8025
+  # All emails sent in dev are captured here
+  # ---------------------------------------------------------------------------
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: tabeliao-dev-mailhog
+    restart: unless-stopped
+    ports:
+      - '1025:1025'
+      - '8025:8025'
+    environment:
+      MH_STORAGE: memory
+      MH_SMTP_BIND_ADDR: 0.0.0.0:1025
+      MH_UI_BIND_ADDR: 0.0.0.0:8025
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:8025']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - tabeliao-dev
+
+  # ---------------------------------------------------------------------------
+  # PgAdmin 4 (Database Management)
+  # Web UI: http://localhost:5050
+  # Login: admin@tabeliao.dev / admin
+  # ---------------------------------------------------------------------------
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tabeliao-dev-pgadmin
+    restart: unless-stopped
+    ports:
+      - '5050:80'
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tabeliao.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - tabeliao-pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--quiet', '--tries=1', '--spider', 'http://localhost:80/misc/ping']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - tabeliao-dev
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  tabeliao-pg-data:
+    driver: local
+  tabeliao-redis-data:
+    driver: local
+  tabeliao-rabbitmq-data:
+    driver: local
+  tabeliao-minio-data:
+    driver: local
+  tabeliao-pgadmin-data:
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Networks
+# ---------------------------------------------------------------------------
+networks:
+  tabeliao-dev:
+    driver: bridge

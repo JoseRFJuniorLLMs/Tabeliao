@@ -1,0 +1,357 @@
+version: '3.9'
+
+services:
+  # ---------------------------------------------------------------------------
+  # Infrastructure
+  # ---------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: tabeliao-postgres
+    restart: unless-stopped
+    ports:
+      - '${DATABASE_PORT:-5432}:5432'
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-tabeliao}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-tabeliao_secret}
+      POSTGRES_DB: ${DATABASE_NAME:-tabeliao_db}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-tabeliao} -d ${DATABASE_NAME:-tabeliao_db}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tabeliao-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: tabeliao-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - tabeliao-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: tabeliao-rabbitmq
+    restart: unless-stopped
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-tabeliao}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - tabeliao-network
+
+  # ---------------------------------------------------------------------------
+  # Microservices
+  # ---------------------------------------------------------------------------
+  api-gateway:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: api-gateway
+    container_name: tabeliao-api-gateway
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: auth-service
+    container_name: tabeliao-auth-service
+    restart: unless-stopped
+    ports:
+      - '3001:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      GOVBR_CLIENT_ID: ${GOVBR_CLIENT_ID}
+      GOVBR_CLIENT_SECRET: ${GOVBR_CLIENT_SECRET}
+      GOVBR_REDIRECT_URI: ${GOVBR_REDIRECT_URI}
+      GOVBR_AUTH_URL: ${GOVBR_AUTH_URL}
+      GOVBR_TOKEN_URL: ${GOVBR_TOKEN_URL}
+      SERASA_API_KEY: ${SERASA_API_KEY}
+      SERASA_BASE_URL: ${SERASA_BASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  contract-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: contract-service
+    container_name: tabeliao-contract-service
+    restart: unless-stopped
+    ports:
+      - '3002:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      AWS_REGION: ${AWS_REGION:-sa-east-1}
+      IPFS_GATEWAY_URL: ${IPFS_GATEWAY_URL}
+      IPFS_API_KEY: ${IPFS_API_KEY}
+      IPFS_API_SECRET: ${IPFS_API_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: ai-service
+    container_name: tabeliao-ai-service
+    restart: unless-stopped
+    ports:
+      - '3003:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  blockchain-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: blockchain-service
+    container_name: tabeliao-blockchain-service
+    restart: unless-stopped
+    ports:
+      - '3004:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      POLYGON_RPC_URL: ${POLYGON_RPC_URL}
+      POLYGON_PRIVATE_KEY: ${POLYGON_PRIVATE_KEY}
+      POLYGON_CHAIN_ID: ${POLYGON_CHAIN_ID:-80002}
+      POLYGON_CONTRACT_ADDRESS: ${POLYGON_CONTRACT_ADDRESS}
+      CHAINLINK_NODE_URL: ${CHAINLINK_NODE_URL}
+      CHAINLINK_JOB_ID: ${CHAINLINK_JOB_ID}
+      IPFS_GATEWAY_URL: ${IPFS_GATEWAY_URL}
+      IPFS_API_KEY: ${IPFS_API_KEY}
+      IPFS_API_SECRET: ${IPFS_API_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  payment-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: payment-service
+    container_name: tabeliao-payment-service
+    restart: unless-stopped
+    ports:
+      - '3005:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      PIX_API_KEY: ${PIX_API_KEY}
+      PIX_API_SECRET: ${PIX_API_SECRET}
+      PIX_BASE_URL: ${PIX_BASE_URL}
+      PIX_WEBHOOK_URL: ${PIX_WEBHOOK_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: notification-service
+    container_name: tabeliao-notification-service
+    restart: unless-stopped
+    ports:
+      - '3006:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+      WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN}
+      WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
+      WHATSAPP_BUSINESS_ACCOUNT_ID: ${WHATSAPP_BUSINESS_ACCOUNT_ID}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_FROM_EMAIL: ${SENDGRID_FROM_EMAIL:-noreply@tabeliao.com.br}
+      SENDGRID_FROM_NAME: ${SENDGRID_FROM_NAME:-Tabeliao}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  dispute-service:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.service
+      args:
+        SERVICE_NAME: dispute-service
+    container_name: tabeliao-dispute-service
+    restart: unless-stopped
+    ports:
+      - '3007:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      APP_PORT: 3000
+      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - tabeliao-network
+
+  # ---------------------------------------------------------------------------
+  # Frontend
+  # ---------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.frontend
+    container_name: tabeliao-frontend
+    restart: unless-stopped
+    ports:
+      - '4000:3000'
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: http://localhost:${APP_PORT:-3000}/api/v1
+      NEXT_PUBLIC_APP_URL: ${FRONTEND_URL:-http://localhost:4000}
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+    depends_on:
+      - api-gateway
+    networks:
+      - tabeliao-network
+
+# ---------------------------------------------------------------------------
+# Volumes
+# ---------------------------------------------------------------------------
+volumes:
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  rabbitmq-data:
+    driver: local
+
+# ---------------------------------------------------------------------------
+# Networks
+# ---------------------------------------------------------------------------
+networks:
+  tabeliao-network:
+    driver: bridge

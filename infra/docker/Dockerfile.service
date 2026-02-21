@@ -1,0 +1,107 @@
+# =============================================================================
+# Tabeliao - Generic NestJS Microservice Dockerfile
+# Multi-stage build for optimized production images
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Stage 1: Install dependencies
+# ---------------------------------------------------------------------------
+FROM node:20-alpine AS deps
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy root workspace files
+COPY package.json package-lock.json ./
+
+# Copy all workspace package.json files for dependency resolution
+COPY services/*/package.json ./services-pkg/
+RUN for dir in services-pkg/*/; do \
+      service=$(basename "$dir"); \
+      mkdir -p "services/$service"; \
+      cp "$dir/package.json" "services/$service/"; \
+    done && rm -rf services-pkg
+
+COPY packages/*/package.json ./packages-pkg/
+RUN for dir in packages-pkg/*/; do \
+      pkg=$(basename "$dir"); \
+      mkdir -p "packages/$pkg"; \
+      cp "$dir/package.json" "packages/$pkg/"; \
+    done && rm -rf packages-pkg
+
+# Install all dependencies
+RUN npm ci --ignore-scripts
+
+# ---------------------------------------------------------------------------
+# Stage 2: Build the service
+# ---------------------------------------------------------------------------
+FROM node:20-alpine AS builder
+
+ARG SERVICE_NAME
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source code
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/ ./packages/
+COPY services/${SERVICE_NAME}/ ./services/${SERVICE_NAME}/
+
+# Build shared packages first
+RUN for dir in packages/*/; do \
+      if [ -f "$dir/tsconfig.json" ]; then \
+        npm run build -w "$dir" --if-present || true; \
+      fi; \
+    done
+
+# Build the target service
+RUN npm run build -w services/${SERVICE_NAME}
+
+# ---------------------------------------------------------------------------
+# Stage 3: Production image
+# ---------------------------------------------------------------------------
+FROM node:20-alpine AS production
+
+ARG SERVICE_NAME
+
+# Security: run as non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
+
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Copy package files and install production dependencies only
+COPY package.json package-lock.json ./
+COPY services/${SERVICE_NAME}/package.json ./services/${SERVICE_NAME}/
+COPY packages/*/package.json ./packages/
+
+# Recreate packages directory structure
+RUN for f in packages/*/package.json; do \
+      dir=$(dirname "$f"); \
+      mkdir -p "$dir"; \
+    done
+
+RUN npm ci --omit=dev --ignore-scripts
+
+# Copy built artifacts
+COPY --from=builder /app/services/${SERVICE_NAME}/dist ./services/${SERVICE_NAME}/dist
+COPY --from=builder /app/packages/ ./packages/
+
+# Switch to non-root user
+USER nestjs
+
+# Expose the default port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/health || exit 1
+
+# Start the service
+CMD ["node", "services/${SERVICE_NAME}/dist/main.js"]

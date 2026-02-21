@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 215 28% 17%;
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 215 50% 24%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 215 28% 10%;
+    --foreground: 210 20% 96%;
+    --card: 215 28% 13%;
+    --card-foreground: 210 20% 96%;
+    --popover: 215 28% 13%;
+    --popover-foreground: 210 20% 96%;
+    --muted: 215 20% 18%;
+    --muted-foreground: 215 16% 60%;
+    --border: 215 20% 22%;
+    --input: 215 20% 22%;
+    --ring: 40 50% 54%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  h1 {
+    @apply text-3xl font-bold tracking-tight lg:text-4xl;
+  }
+
+  h2 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  h3 {
+    @apply text-xl font-semibold tracking-tight;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg border border-white/20 dark:border-gray-700/30;
+  }
+
+  .gradient-primary {
+    @apply bg-gradient-to-r from-primary to-primary-500;
+  }
+
+  .gradient-gold {
+    @apply bg-gradient-to-r from-secondary-500 to-secondary-300;
+  }
+
+  .gradient-hero {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5389 50%, #1e3a5f 100%);
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-secondary-400 to-secondary-600;
+  }
+
+  .sidebar-item {
+    @apply flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-muted;
+  }
+
+  .sidebar-item-active {
+    @apply bg-primary/10 text-primary dark:bg-primary-400/10 dark:text-primary-300;
+  }
+
+  .stat-card {
+    @apply relative overflow-hidden rounded-xl border bg-card p-6 shadow-sm transition-shadow hover:shadow-md;
+  }
+
+  .contract-card {
+    @apply rounded-xl border bg-card p-5 shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--muted)) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

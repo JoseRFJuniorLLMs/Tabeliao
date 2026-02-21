@@ -1,0 +1,84 @@
+export enum ContractStatus {
+  DRAFT = 'DRAFT',
+  PENDING_SIGNATURE = 'PENDING_SIGNATURE',
+  ACTIVE = 'ACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  IN_DISPUTE = 'IN_DISPUTE',
+  EXPIRED = 'EXPIRED',
+  TERMINATED = 'TERMINATED',
+  COMPLETED = 'COMPLETED',
+}
+
+export enum ContractType {
+  RENTAL = 'RENTAL',
+  SERVICE = 'SERVICE',
+  PURCHASE_SALE = 'PURCHASE_SALE',
+  LOAN = 'LOAN',
+  FREELANCER = 'FREELANCER',
+  NDA = 'NDA',
+  PARTNERSHIP = 'PARTNERSHIP',
+  CUSTOM = 'CUSTOM',
+}
+
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER',
+  ARBITRATOR = 'ARBITRATOR',
+  MEDIATOR = 'MEDIATOR',
+}
+
+export enum KycLevel {
+  NONE = 'NONE',
+  BASIC = 'BASIC',
+  INTERMEDIATE = 'INTERMEDIATE',
+  ADVANCED = 'ADVANCED',
+  GOVBR_SILVER = 'GOVBR_SILVER',
+  GOVBR_GOLD = 'GOVBR_GOLD',
+}
+
+export enum PaymentStatus {
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+  IN_ESCROW = 'IN_ESCROW',
+}
+
+export enum PaymentMethod {
+  PIX = 'PIX',
+  BOLETO = 'BOLETO',
+  CREDIT_CARD = 'CREDIT_CARD',
+  DREX = 'DREX',
+  CRYPTO = 'CRYPTO',
+}
+
+export enum DisputeStatus {
+  OPENED = 'OPENED',
+  UNDER_MEDIATION = 'UNDER_MEDIATION',
+  UNDER_ARBITRATION = 'UNDER_ARBITRATION',
+  AI_REVIEW = 'AI_REVIEW',
+  RESOLVED = 'RESOLVED',
+  ESCALATED = 'ESCALATED',
+  CLOSED = 'CLOSED',
+}
+
+export enum NotificationType {
+  EMAIL = 'EMAIL',
+  WHATSAPP = 'WHATSAPP',
+  SMS = 'SMS',
+  PUSH = 'PUSH',
+}
+
+export enum RiskLevel {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  CRITICAL = 'CRITICAL',
+}
+
+export enum SignatureType {
+  SIMPLE = 'SIMPLE',
+  ADVANCED = 'ADVANCED',
+  QUALIFIED_ICP = 'QUALIFIED_ICP',
+}

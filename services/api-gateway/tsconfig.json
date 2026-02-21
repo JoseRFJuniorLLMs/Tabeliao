@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "baseUrl": ".",
+    "paths": {
+      "@tabeliao/shared": ["../../packages/shared/src"],
+      "@tabeliao/shared/*": ["../../packages/shared/src/*"],
+      "@tabeliao/contracts": ["../../packages/contracts/src"],
+      "@tabeliao/contracts/*": ["../../packages/contracts/src/*"],
+      "@tabeliao/config": ["../../packages/config/src"],
+      "@tabeliao/config/*": ["../../packages/config/src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
+}

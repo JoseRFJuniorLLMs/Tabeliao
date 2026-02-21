@@ -1,0 +1,55 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "moduleResolution": "node",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "incremental": true,
+
+    "strict": true,
+    "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@tabeliao/shared": ["packages/shared/src"],
+      "@tabeliao/shared/*": ["packages/shared/src/*"],
+      "@tabeliao/contracts": ["packages/contracts/src"],
+      "@tabeliao/contracts/*": ["packages/contracts/src/*"],
+      "@tabeliao/database": ["packages/database/src"],
+      "@tabeliao/database/*": ["packages/database/src/*"],
+      "@tabeliao/blockchain": ["packages/blockchain/src"],
+      "@tabeliao/blockchain/*": ["packages/blockchain/src/*"],
+      "@tabeliao/config": ["packages/config/src"],
+      "@tabeliao/config/*": ["packages/config/src/*"]
+    }
+  },
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".next",
+    "coverage",
+    "**/*.spec.ts",
+    "**/*.test.ts"
+  ]
+}

@@ -1,7 +1,7 @@
 import ContractDetailPage from './ContractDetailClient';
 
 export function generateStaticParams() {
-  return [];
+  return [{ id: '0' }];
 }
 
 export default function Page() {

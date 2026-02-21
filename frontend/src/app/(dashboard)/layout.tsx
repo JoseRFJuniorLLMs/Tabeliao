@@ -2,6 +2,7 @@
 
 import { Sidebar } from "@/components/dashboard/sidebar";
 import { DashboardHeader } from "@/components/dashboard/header";
+import { VoiceAssistant } from "@/components/dashboard/voice-assistant";
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
           {children}
         </main>
       </div>
+      <VoiceAssistant />
     </div>
   );
 }

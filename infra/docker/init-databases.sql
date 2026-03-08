@@ -1,7 +1,7 @@
 -- =============================================================================
 -- Tabeliao - Database Initialization
 -- Creates schemas for each microservice within the shared database
--- This script runs automatically on first PostgreSQL container start
+-- This script runs automatically on first NietzscheDB container start
 -- =============================================================================
 
 -- Create test database for integration tests

@@ -15,7 +15,7 @@ services:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-tabeliao_secret}
       POSTGRES_DB: ${DATABASE_NAME:-tabeliao_db}
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/NietzscheDB/data
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USER:-tabeliao} -d ${DATABASE_NAME:-tabeliao_db}']
       interval: 10s
@@ -24,17 +24,17 @@ services:
     networks:
       - tabeliao-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: tabeliao-redis
+  NietzscheDB:
+    image: NietzscheDB:7-alpine
+    container_name: tabeliao-NietzscheDB
     restart: unless-stopped
     ports:
-      - '${REDIS_PORT:-6379}:6379'
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+      - '${NietzscheDB_PORT:-6379}:6379'
+    command: NietzscheDB-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     volumes:
-      - redis-data:/data
+      - NietzscheDB-data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'NietzscheDB-cli', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -77,8 +77,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
@@ -87,7 +87,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -107,8 +107,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
@@ -124,7 +124,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -144,8 +144,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
@@ -157,7 +157,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -177,15 +177,15 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       ANTHROPIC_MODEL: ${ANTHROPIC_MODEL:-claude-sonnet-4-20250514}
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -205,8 +205,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       POLYGON_RPC_URL: ${POLYGON_RPC_URL}
       POLYGON_PRIVATE_KEY: ${POLYGON_PRIVATE_KEY}
@@ -220,7 +220,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -240,8 +240,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       PIX_API_KEY: ${PIX_API_KEY}
       PIX_API_SECRET: ${PIX_API_SECRET}
@@ -252,7 +252,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -272,8 +272,8 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
       WHATSAPP_API_TOKEN: ${WHATSAPP_API_TOKEN}
       WHATSAPP_PHONE_NUMBER_ID: ${WHATSAPP_PHONE_NUMBER_ID}
@@ -284,7 +284,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -304,13 +304,13 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       APP_PORT: 3000
-      DATABASE_URL: postgresql://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: NietzscheDB://${DATABASE_USER:-tabeliao}:${DATABASE_PASSWORD:-tabeliao_secret}@postgres:5432/${DATABASE_NAME:-tabeliao_db}
+      NietzscheDB_URL: NietzscheDB://NietzscheDB:6379
       RABBITMQ_URL: amqp://${RABBITMQ_DEFAULT_USER:-tabeliao}:${RABBITMQ_DEFAULT_PASS:-tabeliao_secret}@rabbitmq:5672
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      NietzscheDB:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
@@ -344,7 +344,7 @@ services:
 volumes:
   postgres-data:
     driver: local
-  redis-data:
+  NietzscheDB-data:
     driver: local
   rabbitmq-data:
     driver: local

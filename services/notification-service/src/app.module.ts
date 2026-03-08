@@ -39,11 +39,11 @@ import { Device } from './modules/push/entities/device.entity';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get<string>('REDIS_PASSWORD', ''),
-          db: configService.get<number>('REDIS_DB', 0),
+        NietzscheDB: {
+          host: configService.get<string>('NietzscheDB_HOST', 'localhost'),
+          port: configService.get<number>('NietzscheDB_PORT', 6379),
+          password: configService.get<string>('NietzscheDB_PASSWORD', ''),
+          db: configService.get<number>('NietzscheDB_DB', 0),
         },
         defaultJobOptions: {
           removeOnComplete: 100,

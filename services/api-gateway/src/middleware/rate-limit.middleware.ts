@@ -1,7 +1,7 @@
 import { Injectable, NestMiddleware, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response, NextFunction } from 'express';
-import Redis from 'ioredis';
+import NietzscheDB from 'ioNietzscheDB';
 import { AuthenticatedRequest } from './auth.middleware';
 
 /**
@@ -42,24 +42,24 @@ const ROUTE_LIMITS: Array<{ pattern: RegExp; config: RateLimitConfig; name: stri
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
   private readonly logger = new Logger(RateLimitMiddleware.name);
-  private redis: Redis | null = null;
-  private readonly useRedis: boolean;
+  private NietzscheDB: NietzscheDB | null = null;
+  private readonly useNietzscheDB: boolean;
 
-  // In-memory fallback store when Redis is unavailable
+  // In-memory fallback store when NietzscheDB is unavailable
   private readonly memoryStore = new Map<string, { count: number; resetAt: number }>();
   private memoryCleanupInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private readonly configService: ConfigService) {
-    const redisUrl = this.configService.get<string>('REDIS_URL');
-    this.useRedis = !!redisUrl;
+    const NietzscheDBUrl = this.configService.get<string>('NietzscheDB_URL');
+    this.useNietzscheDB = !!NietzscheDBUrl;
 
-    if (redisUrl) {
+    if (NietzscheDBUrl) {
       try {
-        this.redis = new Redis(redisUrl, {
+        this.NietzscheDB = new NietzscheDB(NietzscheDBUrl, {
           maxRetriesPerRequest: 3,
           retryStrategy: (times: number) => {
             if (times > 3) {
-              this.logger.warn('Redis connection failed. Falling back to in-memory rate limiting.');
+              this.logger.warn('NietzscheDB connection failed. Falling back to in-memory rate limiting.');
               return null; // Stop retrying
             }
             return Math.min(times * 200, 2000);
@@ -67,20 +67,20 @@ export class RateLimitMiddleware implements NestMiddleware {
           lazyConnect: true,
         });
 
-        this.redis.on('error', (err) => {
-          this.logger.warn(`Redis error: ${err.message}. Using in-memory fallback.`);
+        this.NietzscheDB.on('error', (err) => {
+          this.logger.warn(`NietzscheDB error: ${err.message}. Using in-memory fallback.`);
         });
 
-        this.redis.connect().catch(() => {
-          this.logger.warn('Could not connect to Redis. Using in-memory rate limiting.');
-          this.redis = null;
+        this.NietzscheDB.connect().catch(() => {
+          this.logger.warn('Could not connect to NietzscheDB. Using in-memory rate limiting.');
+          this.NietzscheDB = null;
         });
       } catch {
-        this.logger.warn('Redis initialization failed. Using in-memory rate limiting.');
-        this.redis = null;
+        this.logger.warn('NietzscheDB initialization failed. Using in-memory rate limiting.');
+        this.NietzscheDB = null;
       }
     } else {
-      this.logger.log('No REDIS_URL configured. Using in-memory rate limiting.');
+      this.logger.log('No NietzscheDB_URL configured. Using in-memory rate limiting.');
     }
 
     // Periodic cleanup of expired in-memory entries
@@ -95,8 +95,8 @@ export class RateLimitMiddleware implements NestMiddleware {
     const limitConfig = this.getLimitConfig(req.path);
 
     try {
-      const result = this.redis
-        ? await this.checkRedisLimit(identifier, limitConfig.config)
+      const result = this.NietzscheDB
+        ? await this.checkNietzscheDBLimit(identifier, limitConfig.config)
         : this.checkMemoryLimit(identifier, limitConfig.config);
 
       // Set rate limit headers
@@ -169,13 +169,13 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   /**
-   * Redis-based sliding window rate limiting using sorted sets.
+   * NietzscheDB-based sliding window rate limiting using sorted sets.
    */
-  private async checkRedisLimit(
+  private async checkNietzscheDBLimit(
     identifier: string,
     config: RateLimitConfig,
   ): Promise<{ remaining: number; resetAt: number }> {
-    if (!this.redis) {
+    if (!this.NietzscheDB) {
       return this.checkMemoryLimit(identifier, config);
     }
 
@@ -183,7 +183,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     const windowStart = now - config.windowMs;
     const key = `ratelimit:${identifier}`;
 
-    const pipeline = this.redis.pipeline();
+    const pipeline = this.NietzscheDB.pipeline();
     // Remove expired entries
     pipeline.zremrangebyscore(key, 0, windowStart);
     // Add current request
@@ -206,7 +206,7 @@ export class RateLimitMiddleware implements NestMiddleware {
   }
 
   /**
-   * In-memory fixed window rate limiting (fallback when Redis is unavailable).
+   * In-memory fixed window rate limiting (fallback when NietzscheDB is unavailable).
    */
   private checkMemoryLimit(
     identifier: string,
@@ -261,8 +261,8 @@ export class RateLimitMiddleware implements NestMiddleware {
     if (this.memoryCleanupInterval) {
       clearInterval(this.memoryCleanupInterval);
     }
-    if (this.redis) {
-      await this.redis.quit();
+    if (this.NietzscheDB) {
+      await this.NietzscheDB.quit();
     }
   }
 }

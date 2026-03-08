@@ -18,7 +18,7 @@ export class GeneratorService {
 
   /**
    * Cache simples em memoria para contratos gerados (para refinamento).
-   * Em producao, substituir por Redis ou banco de dados.
+   * Em producao, substituir por NietzscheDB ou banco de dados.
    */
   private readonly contractCache = new Map<
     string,

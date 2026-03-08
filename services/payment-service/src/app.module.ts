@@ -38,10 +38,10 @@ import { PixModule } from './modules/pix/pix.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get<string>('REDIS_PASSWORD', undefined),
+        NietzscheDB: {
+          host: configService.get<string>('NietzscheDB_HOST', 'localhost'),
+          port: configService.get<number>('NietzscheDB_PORT', 6379),
+          password: configService.get<string>('NietzscheDB_PASSWORD', undefined),
         },
         defaultJobOptions: {
           removeOnComplete: 100,

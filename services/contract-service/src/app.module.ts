@@ -24,10 +24,10 @@ import { databaseConfig } from './config/database.config';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        redis: {
-          host: configService.get<string>('REDIS_HOST', 'localhost'),
-          port: configService.get<number>('REDIS_PORT', 6379),
-          password: configService.get<string>('REDIS_PASSWORD', ''),
+        NietzscheDB: {
+          host: configService.get<string>('NietzscheDB_HOST', 'localhost'),
+          port: configService.get<number>('NietzscheDB_PORT', 6379),
+          password: configService.get<string>('NietzscheDB_PASSWORD', ''),
         },
       }),
     }),

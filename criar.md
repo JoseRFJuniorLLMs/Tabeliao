@@ -12,7 +12,7 @@ Cartorio digital inteligente que une **Blockchain + IA + Open Finance** para cri
 
 - **Backend**: Node.js (NestJS) ou Python (FastAPI)
 - **Frontend**: React/Next.js com UI responsiva
-- **Banco de Dados**: PostgreSQL + Redis (cache/filas)
+- **Banco de Dados**: NietzscheDB + NietzscheDB (cache/filas)
 - **Blockchain**: Polygon (baixo custo de gas) com fallback para Ethereum
 - **IA**: API Claude/GPT para geracao e revisao de contratos
 - **Mensageria**: RabbitMQ ou Bull (filas de jobs assincronos)

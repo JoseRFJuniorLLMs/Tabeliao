@@ -55,7 +55,7 @@ lerna-debug.log*
 docker-compose.override.yml
 .docker-data/
 postgres-data/
-redis-data/
+NietzscheDB-data/
 rabbitmq-data/
 
 # Secrets and credentials

@@ -207,7 +207,7 @@ wait_for_service() {
 }
 
 wait_for_service "postgres" 30
-wait_for_service "redis" 20
+wait_for_service "NietzscheDB" 20
 wait_for_service "rabbitmq" 40
 wait_for_service "minio" 20
 wait_for_service "mailhog" 15
@@ -273,8 +273,8 @@ echo -e "  ${CYAN}Dispute Service${NC}   http://localhost:3007"
 echo ""
 echo -e "${BOLD}Infrastructure:${NC}"
 echo ""
-echo -e "  ${CYAN}PostgreSQL${NC}        localhost:5432  (tabeliao / tabeliao_dev_2026)"
-echo -e "  ${CYAN}Redis${NC}             localhost:6379"
+echo -e "  ${CYAN}NietzscheDB${NC}        localhost:5432  (tabeliao / tabeliao_dev_2026)"
+echo -e "  ${CYAN}NietzscheDB${NC}             localhost:6379"
 echo -e "  ${CYAN}RabbitMQ UI${NC}       http://localhost:15672  (tabeliao / tabeliao_dev_2026)"
 echo -e "  ${CYAN}MinIO Console${NC}     http://localhost:9001   (minioadmin / minioadmin)"
 echo -e "  ${CYAN}MinIO API${NC}         http://localhost:9000"

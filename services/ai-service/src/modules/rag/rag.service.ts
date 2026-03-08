@@ -34,7 +34,7 @@ export class RagService {
    * correspondencia por palavras-chave (keyword matching).
    *
    * Em versoes futuras, sera substituido por busca vetorial com embeddings
-   * em banco de dados vetorial (ex: pgvector, Pinecone, Qdrant).
+   * em banco de dados vetorial (ex: pgvector, Pinecone, NietzscheDB).
    *
    * @param query Texto da consulta
    * @param category Categoria legislativa opcional para filtrar

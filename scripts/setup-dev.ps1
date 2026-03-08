@@ -220,7 +220,7 @@ function Wait-ForService {
 }
 
 Wait-ForService "postgres" 30
-Wait-ForService "redis" 20
+Wait-ForService "NietzscheDB" 20
 Wait-ForService "rabbitmq" 40
 Wait-ForService "minio" 20
 Wait-ForService "mailhog" 15
@@ -304,8 +304,8 @@ Write-Host "  Dispute Service   " -NoNewline; Write-Host "http://localhost:3007"
 Write-Host ""
 Write-Host "Infrastructure:" -ForegroundColor White
 Write-Host ""
-Write-Host "  PostgreSQL        " -NoNewline; Write-Host "localhost:5432  (tabeliao / tabeliao_dev_2026)" -ForegroundColor Cyan
-Write-Host "  Redis             " -NoNewline; Write-Host "localhost:6379" -ForegroundColor Cyan
+Write-Host "  NietzscheDB        " -NoNewline; Write-Host "localhost:5432  (tabeliao / tabeliao_dev_2026)" -ForegroundColor Cyan
+Write-Host "  NietzscheDB             " -NoNewline; Write-Host "localhost:6379" -ForegroundColor Cyan
 Write-Host "  RabbitMQ UI       " -NoNewline; Write-Host "http://localhost:15672  (tabeliao / tabeliao_dev_2026)" -ForegroundColor Cyan
 Write-Host "  MinIO Console     " -NoNewline; Write-Host "http://localhost:9001   (minioadmin / minioadmin)" -ForegroundColor Cyan
 Write-Host "  MinIO API         " -NoNewline; Write-Host "http://localhost:9000" -ForegroundColor Cyan

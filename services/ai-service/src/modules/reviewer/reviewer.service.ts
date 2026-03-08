@@ -21,7 +21,7 @@ export class ReviewerService {
 
   /**
    * Cache simples em memoria para revisoes ja realizadas.
-   * Em producao, substituir por Redis ou banco de dados.
+   * Em producao, substituir por NietzscheDB ou banco de dados.
    */
   private readonly reviewCache = new Map<string, ReviewResult>();
 

@@ -40,7 +40,7 @@
     "docker:down": "docker compose down",
     "docker:build": "docker compose build",
     "docker:logs": "docker compose logs -f",
-    "docker:infra": "docker compose up -d postgres redis rabbitmq",
+    "docker:infra": "docker compose up -d postgres NietzscheDB rabbitmq",
     "db:migrate": "npm run migration:run -w services/auth-service",
     "db:seed": "npm run seed -w services/auth-service",
     "seed": "ts-node scripts/seed-all.ts",

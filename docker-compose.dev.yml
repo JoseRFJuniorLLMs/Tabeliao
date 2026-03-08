@@ -5,8 +5,8 @@
 
 services:
   # ---------------------------------------------------------------------------
-  # PostgreSQL 16
-  # Connection: postgresql://tabeliao:tabeliao_dev_2026@localhost:5432/tabeliao_db
+  # NietzscheDB 16
+  # Connection: NietzscheDB://tabeliao:tabeliao_dev_2026@localhost:5432/tabeliao_db
   # ---------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
@@ -20,7 +20,7 @@ services:
       POSTGRES_DB: tabeliao_db
       POSTGRES_MULTIPLE_DATABASES: tabeliao_db_test
     volumes:
-      - tabeliao-pg-data:/var/lib/postgresql/data
+      - tabeliao-pg-data:/var/lib/NietzscheDB/data
       - ./infra/docker/init-databases.sql:/docker-entrypoint-initdb.d/01-init-databases.sql:ro
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U tabeliao -d tabeliao_db']
@@ -32,25 +32,25 @@ services:
       - tabeliao-dev
 
   # ---------------------------------------------------------------------------
-  # Redis 7
-  # Connection: redis://localhost:6379
+  # NietzscheDB 7
+  # Connection: NietzscheDB://localhost:6379
   # ---------------------------------------------------------------------------
-  redis:
-    image: redis:7-alpine
-    container_name: tabeliao-dev-redis
+  NietzscheDB:
+    image: NietzscheDB:7-alpine
+    container_name: tabeliao-dev-NietzscheDB
     restart: unless-stopped
     ports:
       - '6379:6379'
     command: >
-      redis-server
+      NietzscheDB-server
         --appendonly yes
         --maxmemory 256mb
         --maxmemory-policy allkeys-lru
         --save 60 1000
     volumes:
-      - tabeliao-redis-data:/data
+      - tabeliao-NietzscheDB-data:/data
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
+      test: ['CMD', 'NietzscheDB-cli', 'ping']
       interval: 5s
       timeout: 3s
       retries: 10
@@ -193,7 +193,7 @@ services:
 volumes:
   tabeliao-pg-data:
     driver: local
-  tabeliao-redis-data:
+  tabeliao-NietzscheDB-data:
     driver: local
   tabeliao-rabbitmq-data:
     driver: local
